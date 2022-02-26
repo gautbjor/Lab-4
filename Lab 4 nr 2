@@ -1,0 +1,52 @@
+#include <Zumo32U4Buttons.h>
+#include <Zumo32U4Motors.h>
+#include <Zumo32U4.h>       // importerar bibliotek
+#include <Wire.h>
+
+Zumo32U4ButtonA buttonA;
+Zumo32U4Motors motors;  // gir beskivande namn
+
+
+
+void setup () { //treng ikkje noko her
+}
+
+
+void loop() {
+  buttonA.waitForButton(); // ventar til button a er trykt og sluppet
+
+  for (int speed = 0; speed <= 200; speed++){ // forløkke som akselererar farta, for mjuk start
+    motors.setSpeeds(speed / 2, speed); // gir venstre motor speed sin verdi, og høgre halvparten
+    delay(2); // ein liten delay så det ikkje går så fort
+  }
+
+  delay(4000); // delay så den kjører på speed = 200 i 4000ms
+
+  for (int speed = 200; speed >= 0; speed--){ // forløkke som deakselererar farta til bilen
+    motors.setSpeeds(speed / 2, speed); // gir sidene farta, men høgre med halvparten av venstre
+    delay(2);
+  }
+  //no har bilen køyrd ein loop, og kom tilbake til utgangspunktet, men er retta ei anna retning
+  for (int speed = 0; speed <= 200; speed++){ // aukar farta frå 0 mot 200
+    motors.setSpeeds(speed, speed / 2); // men no er det høgre som er dobbelt så rask som venstre
+    delay(2);
+  }
+
+  delay(12000); // køyre med denne farta i 12000ms, så den fortsette i loopen etter 8 er laga.
+
+  for (int speed = 200; speed >= 0; speed--){  // senkar farta igjen ned til 0
+    motors.setSpeeds(speed, speed / 2);
+    delay(2);
+  }
+   // bilen står stille
+  for (int speed = 0; speed <= 200; speed++){ // startar å akselerere den andre vegen igjen
+    motors.setSpeeds(speed / 2, speed);
+    delay(2);
+  }
+
+  delay(4000); // lar den køyre i 4 sekund
+
+  motors.setSpeeds(0, 0); // stoppar bilen heilt til slutt
+
+}
+    
