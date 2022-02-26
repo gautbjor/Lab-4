@@ -1,0 +1,60 @@
+#include <Zumo32U4Buttons.h>
+#include <Zumo32U4Motors.h> // importerar bibliotek
+#include <Zumo32U4.h>
+#include <Wire.h>
+
+Zumo32U4Buzzer buzzer;
+Zumo32U4LineSensors lineSensor;
+Zumo32U4Motors motors;
+Zumo32U4ButtonA buttonA; // gir beskrivande namn
+Zumo32U4LCD lcd;
+
+int posisjon; // skal holde posisjonsverdien mellom 4000 og 0.
+unsigned int linesensorValues[5]; // liste med verdiane til dei 5 sensorane.
+int sentrering; // held posisjonsverdien forskjøvet med 2000 til høgre.
+
+
+void setup() {
+  lineSensor.initFiveSensors(); // aktiverar alle 5 IR sensorane 
+  lcd.init(); // aktivera lcd skjermen
+  lcd.clear(); // fjernar det som eventuelt står på den
+  buttonA.waitForButton(); // ventar på at knapp A skal bli trykt og sluppet
+  kalibrer(); // køyre kanlibrerfunksjonen
+}
+
+void kalibrer()
+  delay(1000) // så den ventar litt med å spinne etter knappen er trykt.
+  for(int i = 0; i < 120; i++) // køyre 121 gongar 
+  {
+    if (i > 30 && i <= 90) // roterar den til venstre under 30 og over 90.
+    {
+      motors.setSpeeds(-150, 150); 
+    }
+    else // viss ikkje, mellom 30 og 90, roerar den til høgre
+    {
+      motors.setSpeeds(150, -150);
+    }
+
+    lineSensor.calibrate();  // les av sensorane og lagrar verdiane
+  }
+  motors.setSpeeds(0, 0); // stoppar bilen, som no er i utgangsposisjonen
+}                         // 0 + 30 - 60 + 30 = 0
+
+void loop() {
+  posisjon = lineSensor.readLine(linesensorValues); // les av frå dei 5 IR sensorane
+  sentrering = posisjon - 2000; // flyttar midtpunktet frå 2000 til 0.
+  lcd.setCursor(0,0); // sett markøren på lcd til øverset linje
+  lcd.clear(); // fjernar det som eventuelt står der
+  lcd.print(sentrering); // printar plasseringsverien resultatet frå avlesninga
+
+  if (sentrering > -150 && sentreing < 150){ // viss resultatet er mellom dette
+    motors.setSpeeds(150, 150); // bilen køyre rett fram
+  }
+  else if (sentrering < -150){ // er det >-150 svingar den av mot høgre
+    motors.setSpeeds(50, 250); // høgre side køyre fortare og venstre saktare
+  }                             // for å rette opp
+  else if (sentrering > 150){ // motsatt, svinga mot venstre, så aukar farta på
+    motors.setSpeeds(250, 50); // venstresida for å rette opp.
+  }
+  
+}
